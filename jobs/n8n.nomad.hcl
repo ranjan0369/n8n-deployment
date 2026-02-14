@@ -43,6 +43,11 @@ job "n8n" {
         destination = "/home/node/.n8n"
       }
 
+      resources {
+        cpu = 500
+        memory = 1024
+      }
+
       service {
         name = "n8n"
         port = "http"
