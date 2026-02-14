@@ -29,4 +29,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            nomad job run /root/jobs/n8n.nomad
+            nomad job run /root/jobs/n8n.nomad.hcl
