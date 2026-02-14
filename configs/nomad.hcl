@@ -1,0 +1,40 @@
+datacenter = "dc1"
+data_dir = "/var/lib/nomad"
+bind_addr = "0.0.0.0"
+
+server {
+  enabled = true
+  bootstrap_expect = 1
+}
+
+client {
+  enabled = true
+  network_interface = "eth1"
+
+  host_volume "n8n-data" {
+    path      = "/opt/n8n/data"
+    read_only = false
+  }
+
+  host_volume "postgres-data" {
+    path      = "/opt/postgres/data"
+    read_only = false
+  }
+
+  host_volume "traefik-letsencrypt" {
+    path      = "/opt/traefik/letsencrypt"
+    read_only = false
+  }
+}
+
+plugin "docker" {
+  config {
+    volumes {
+      enabled = true
+    }
+  }
+}
+
+consul {
+  address = "127.0.0.1:8500"
+}
