@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "./jobs/n8n.nomad.hcl"
-          target: "/root/nomad-jobs/"
+          target: "/root"
 
       - name: Run Nomad Job on Server
         uses: appleboy/ssh-action@master
@@ -29,4 +29,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            nomad job run /root/nomad-jobs/n8n.nomad
+            nomad job run /root/jobs/n8n.nomad
