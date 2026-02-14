@@ -19,7 +19,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "n8n.nomad"
+          source: "./jobs/n8n.nomad.hcl"
           target: "/root/nomad-jobs/"
 
       - name: Run Nomad Job on Server
