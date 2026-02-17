@@ -42,9 +42,8 @@ ansible/
 │       └── consul_servers.yml    # Consul server variables
 │
 ├── playbooks/                    # Executable playbooks
-│   ├── initialize.yml            # ✈️ Master playbook (RUN THIS)
+│   ├── initialize.yml            # Security and tuning
 │   ├── docker.yml                # Container runtime
-│   ├── infra_hardening.yml       # Security & tuning
 │   ├── create-host-volumes.yml   # Persistent storage
 │   ├── nomad.yml                 # Orchestration engine
 │   ├── consul.yml                # Service discovery
