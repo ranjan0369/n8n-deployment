@@ -659,14 +659,14 @@ n8n-deployment/
 
 ### Before Production Deployment
 
-- [ ] Change all default passwords in `group_vars`
-- [ ] Enable firewall rules (restrict access to ports)
-- [ ] Configure Let's Encrypt for HTTPS
-- [ ] Set up PostgreSQL backups
-- [ ] Enable audit logging for Nomad/Consul
-- [ ] Configure TLS for inter-service communication
-- [ ] Set up monitoring and alerting
-- [ ] Install security patches on OS
+- Change all default passwords in `group_vars`
+- Enable firewall rules (restrict access to ports)
+- Configure Let's Encrypt for HTTPS
+- Set up PostgreSQL backups
+- Enable audit logging for Nomad/Consul
+- Configure TLS for inter-service communication
+- Set up monitoring and alerting
+- Install security patches on OS
 
 ### Post-Deployment Verification
 
