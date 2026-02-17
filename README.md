@@ -8,69 +8,6 @@ Enterprise-grade infrastructure automation for deploying n8n (workflow automatio
 
 ---
 
-## Architecture Overview
-
-### System Design
-
-The infrastructure consists of three tightly integrated layers working in harmony:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│              Single-Node Nomad Cluster                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │           LAYER 1: API Gateway & Routing               │    │
-│  │  Traefik (Reverse Proxy, SSL/TLS, Load Balancing)      │    │
-│  │  Ports: 80 (HTTP), 443 (HTTPS), 8080 (Dashboard)       │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                           ↓                                     │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │        LAYER 2: Application & Orchestration            │    │
-│  │  N8N (Workflow Automation Engine)                      │    │
-│  │  Port: 5678  |  Health Checks & Service Registration   │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                           ↓                                     │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │         LAYER 3: Data Persistence & Discovery          │    │
-│  │  PostgreSQL (Database) | Consul (Service Discovery)    │    │
-│  │  Ports: 5432 (DB) | 8500 (HTTP), 8600 (DNS)            │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                                                                 │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │      STORAGE LAYER: Persistent Host Volumes             │    │
-│  │  [traefik_data] [n8n_data] [postgres_data]             │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-                  ↑
-          Host Network (<droplet's public ip>)
-```
-
-### Data Flow
-
-```
-User Request (HTTPS) 
-    ↓
-Traefik → Receives request on ports 80/443
-    ↓
-Traefik → Consults Consul Catalog for N8N service IP
-    ↓
-Traefik → Routes to N8N application (5678)
-    ↓
-N8N → Executes workflow logic
-    ↓
-N8N → Queries PostgreSQL for workflow/execution data (5432)
-    ↓
-PostgreSQL → Returns data
-    ↓
-N8N → Returns response to Traefik
-    ↓
-Traefik → Returns HTTPS response to user
-```
-
----
-
 ## Ansible Automation Philosophy
 
 Instead of manual configuration steps, this project uses **Infrastructure as Code** with Ansible. Every component is provisioned automatically, making deployment:
@@ -400,7 +337,7 @@ SELECT pg_size_pretty(pg_database_size('n8n'));  # DB size
 
 ---
 
-## 🔄 Common Operations
+## Common Operations
 
 ### Restart a Service
 
@@ -605,7 +542,7 @@ nomad run /opt/nomad/jobs/n8n.nomad.hcl
 
 ---
 
-## 📁 File Reference
+## File Reference
 
 ```
 n8n-deployment/
@@ -669,7 +606,7 @@ sudo tail -20 /var/log/syslog
 ```
 ---
 
-## 💡 Best Practices
+## Best Practices
 
 1. **Always test in non-production first** - Use staging environment
 2. **Keep backups** - Backup before major changes
