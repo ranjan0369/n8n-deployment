@@ -44,7 +44,7 @@ The infrastructure consists of three tightly integrated layers working in harmon
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                   ↑
-          Host Network (10.124.0.2)
+          Host Network (<droplet's public ip>)
 ```
 
 ### Data Flow
@@ -176,13 +176,13 @@ code ansible/inventory/hosts.ini
 **Example - Single Node Deployment:**
 ```ini
 [nomad_servers]
-n8n-prod ansible_host=10.124.0.2 ansible_user=ubuntu
+n8n-prod ansible_host=<droplet's public ip> ansible_user=dgouser
 
 [nomad_clients]
-n8n-prod ansible_host=10.124.0.2 ansible_user=ubuntu
+n8n-prod ansible_host=<droplet's public ip> ansible_user=dgouser
 
 [consul_servers]
-n8n-prod ansible_host=10.124.0.2 ansible_user=ubuntu
+n8n-prod ansible_host=<droplet's public ip> ansible_user=dgouser
 
 [all:vars]
 ansible_ssh_private_key_file=~/.ssh/id_rsa
@@ -194,14 +194,14 @@ ansible_become_method=sudo
 **Example - Multi-Node Deployment:**
 ```ini
 [nomad_servers]
-nomad-server-1 ansible_host=10.124.0.2 ansible_user=ubuntu
+nomad-server-1 ansible_host=<droplet's public ip> ansible_user=dgouser
 
 [nomad_clients]
-nomad-client-1 ansible_host=10.124.0.3 ansible_user=ubuntu
-nomad-client-2 ansible_host=10.124.0.4 ansible_user=ubuntu
+nomad-client-1 ansible_host=10.124.0.3 ansible_user=dgouser
+nomad-client-2 ansible_host=10.124.0.4 ansible_user=dgouser
 
 [consul_servers]
-nomad-server-1 ansible_host=10.124.0.2 ansible_user=ubuntu
+nomad-server-1 ansible_host=<droplet's public ip> ansible_user=dgouser
 
 [all:vars]
 ansible_ssh_private_key_file=~/.ssh/id_rsa
@@ -288,7 +288,7 @@ nomad status traefik
 
 ---
 
-## 🎯 Accessing Services
+## Accessing Services
 
 Once deployment completes, all services are immediately available:
 
@@ -301,7 +301,7 @@ Purpose: Workflow automation, API integrations, scheduling
 ```
 
 **First Login:**
-1. Navigate to `https://10.124.0.2`
+1. Navigate to `https://<droplet's public ip>`
 2. You may see self-signed certificate warning (normal)
 3. Click "Proceed" or "Advanced"
 4. Login with credentials from variables
@@ -336,7 +336,7 @@ Purpose: View active routes, certificates, middleware
 ansible nomad_servers -m shell -a "nomad status"
 
 # Or SSH in and run directly
-ssh dgouser@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # View all jobs
 nomad status
@@ -350,7 +350,7 @@ nomad status traefik
 ### View Service Logs
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Real-time logs (N8N)
 nomad logs -job n8n -f
@@ -386,7 +386,7 @@ df -h
 ### Database Administration
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Connect to PostgreSQL
 psql -h 127.0.0.1 -U postgres -d n8n
@@ -405,7 +405,7 @@ SELECT pg_size_pretty(pg_database_size('n8n'));  # DB size
 ### Restart a Service
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Restart N8N
 nomad stop n8n
@@ -423,11 +423,11 @@ nomad run /opt/nomad/jobs/n8n.nomad.hcl
 ### Backup Data
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # PostgreSQL backup to file
 pg_dump -h 127.0.0.1 -U postgres -d n8n > n8n_backup.sql
-scp ubuntu@10.124.0.2:n8n_backup.sql /local/backup/path/
+scp dgouser@<droplet's public ip>:n8n_backup.sql /local/backup/path/
 
 # N8N data backup
 sudo tar -czf n8n-data-backup.tar.gz /opt/nomad/volumes/n8n/
@@ -439,7 +439,7 @@ sudo tar -czf traefik-certs-backup.tar.gz /opt/nomad/volumes/traefik/
 ### Restore from Backup
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # PostgreSQL restore
 psql -h 127.0.0.1 -U postgres -d n8n < backup.sql
@@ -468,7 +468,7 @@ ansible nomad_servers -m shell -a "nomad node status"
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Ansible Connection Issues
 
@@ -477,7 +477,7 @@ ansible nomad_servers -m shell -a "nomad node status"
 **Debug Steps:**
 ```bash
 # Test SSH connectivity
-ssh -v -i ~/.ssh/id_rsa ubuntu@10.124.0.2
+ssh -v -i ~/.ssh/id_rsa dgouser@<droplet's public ip>
 
 # Check SSH key permissions
 ls -la ~/.ssh/id_rsa
@@ -492,7 +492,7 @@ ansible nomad_servers -m ping
 ssh-add ~/.ssh/id_rsa
 
 # Or copy key to target
-ssh-copy-id -i ~/.ssh/id_rsa ubuntu@10.124.0.2
+ssh-copy-id -i ~/.ssh/id_rsa dgouser@<droplet's public ip>
 ```
 
 ### Playbook Execution Hangs
@@ -517,7 +517,7 @@ ansible-playbook playbooks/docker.yml -v
 
 **Debug Steps:**
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Check specific job
 nomad status n8n
@@ -549,7 +549,7 @@ nomad run /opt/nomad/jobs/n8n.nomad.hcl
 
 **Debug Steps:**
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Test PostgreSQL connectivity
 nc -zv 127.0.0.1 5432
@@ -564,7 +564,7 @@ docker ps | grep postgres
 
 **Solution - Restart PostgreSQL:**
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 nomad stop postgres
 sleep 5
@@ -584,7 +584,7 @@ nomad run /opt/nomad/jobs/n8n.nomad.hcl
 
 **Debug:**
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Find process using port
 lsof -i :5678    # N8N
@@ -616,7 +616,7 @@ n8n-deployment/
 │   │   ├── hosts.ini           # Target hosts
 │   │   └── group_vars/         # Variables
 │   ├── playbooks/              # Main playbooks
-│   │   ├── initialize.yml      # ⭐ Master playbook
+│   │   ├── initialize.yml      
 │   │   ├── docker.yml
 │   │   ├── nomad.yml
 │   │   ├── consul.yml
@@ -639,7 +639,7 @@ n8n-deployment/
 
 ---
 
-## 🔐 Security Checklist
+## Security Checklist
 
 ### Before Production Deployment
 
@@ -655,7 +655,7 @@ n8n-deployment/
 ### Post-Deployment Verification
 
 ```bash
-ssh ubuntu@10.124.0.2
+ssh dgouser@<droplet's public ip>
 
 # Check listening ports
 sudo netstat -tlnp | grep LISTEN
@@ -666,21 +666,7 @@ ls -la /opt/nomad/config/
 # Check recent system logs
 sudo tail -20 /var/log/syslog
 
-# Verify firewall status
-sudo ufw status
 ```
-
----
-
-## 📚 Additional Resources
-
-- **Ansible**: https://docs.ansible.com/
-- **Nomad**: https://www.nomadproject.io/docs
-- **Consul**: https://www.consul.io/docs
-- **N8N**: https://docs.n8n.io/
-- **Traefik**: https://doc.traefik.io/traefik/
-- **PostgreSQL**: https://www.postgresql.org/docs/
-
 ---
 
 ## 💡 Best Practices
@@ -695,18 +681,7 @@ sudo ufw status
 
 ---
 
-## 📝 License & Support
-
-This Infrastructure as Code project is provided for deployment and educational purposes.
-
-For support:
-- Check [Troubleshooting](#troubleshooting) section above
-- Review component documentation links
-- Check logs: `ssh ubuntu@10.124.0.2 && nomad logs -job <service>`
-
----
-
-**Status**: ✅ Production Ready  
+**Status**: Production Ready  
 **Version**: 1.0 - Ansible Automated  
 **Last Updated**: February 2026  
 **Deployment Method**: Fully Automated with Ansible
