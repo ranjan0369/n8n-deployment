@@ -33,3 +33,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             nomad job run /home/dgouser/jobs/n8n.nomad.hcl
+            
