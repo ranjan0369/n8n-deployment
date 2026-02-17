@@ -1,0 +1,7 @@
+datacenter = "dc1"
+data_dir = "{{ consul_data_dir }}"
+server = true
+bootstrap_expect = 1
+ui_config { enabled = true }
+bind_addr = "{{ private_ip }}"
+client_addr = "0.0.0.0"

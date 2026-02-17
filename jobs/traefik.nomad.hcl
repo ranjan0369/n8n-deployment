@@ -37,7 +37,7 @@ job "traefik" {
           "--api.insecure=true",
 
           "--providers.consulcatalog=true",
-          "--providers.consulcatalog.endpoint.address=10.124.0.2:8500",
+          "--providers.consulcatalog.endpoint.address=consul.service.consul:8500",
 
           "--entrypoints.web.address=:80",
           "--entrypoints.websecure.address=:443",

@@ -1,0 +1,14 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Copy job files to Nomad nodes
+      copy:
+        src: "../../jobs/{{ item }}"
+        dest: "/home/dgouser/{{ item }}"
+        owner: dgouser
+        group: dgousers
+        mode: '0644'
+      with_items:
+        - n8n.nomad.hcl
+        - traefik.nomad.hcl
+        - postgres.nomad.hcl

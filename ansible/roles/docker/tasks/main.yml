@@ -1,0 +1,18 @@
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: Configure Docker daemon
+  copy:
+    dest: /etc/docker/daemon.json
+    content: "{{ docker_daemon_config | to_nice_json }}"
+    mode: "0644"
+  notify: Restart Docker
+
+- name: Enable and start Docker
+  systemd:
+    name: docker
+    enabled: true
+    state: started

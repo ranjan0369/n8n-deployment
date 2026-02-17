@@ -1,0 +1,75 @@
+- name: Install common packages
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Install Nomad binary
+  get_url:
+    url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
+    dest: "/tmp/nomad.zip"
+    mode: "0644"
+
+- name: Unzip Nomad binary
+  unarchive:
+    src: "/tmp/nomad.zip"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    mode: "0755"
+
+- name: Create Nomad user and group
+  user:
+    name: "{{ nomad_user }}"
+    shell: /sbin/nologin
+    create_home: no
+    state: present
+
+- name: Create Nomad configuration directory
+  file:
+    path: "{{ nomad_config_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
+- name: Create Nomad data directory
+  file:
+    path: "{{ nomad_data_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
+- name: Render Nomad configuration file
+  template:
+    src: nomad.hcl.j2
+    dest: "{{ nomad_config_dir }}/nomad.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0644"
+  notify: Restart Nomad
+
+- name: Create Nomad systemd service file
+  copy:
+    dest: /etc/systemd/system/nomad.service
+    content: |
+      [Unit]
+      Description=Nomad Agent
+      After=network.target
+      [Service]
+      ExecStart=/usr/local/bin/nomad agent -config={{ nomad_config_dir }}
+      Restart=on-failure
+      [Install]
+      WantedBy=multi-user.target
+    mode: "0644"
+  notify: Restart Nomad
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Nomad service
+  systemd:
+    name: nomad
+    enabled: true
+    state: started

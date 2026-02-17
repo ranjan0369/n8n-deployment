@@ -1,0 +1,62 @@
+- name: Update and upgrade the system
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Set system hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+  when: set_timezone
+
+- name: Install common packages for hardening
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Install fail2ban for intrusion prevention
+  apt:
+    name: fail2ban
+    state: present
+
+- name: Create non-root user for deployment
+  user:
+    name: dgouser
+    groups: sudo
+    shell: /bin/bash
+    create_home: yes
+    state: present
+    password: "{{ deploy_password | password_hash('sha512') }}"
+    update_password: on_create
+
+- name: Ensure dgouser's .ssh directory exists
+  file:
+    path: /home/dgouser/.ssh
+    state: directory
+    owner: dgouser
+    group: dgouser
+    mode: '0700'
+
+- name: Copy root's SSH authorized keys to the dgouser user
+  copy:
+    src: /root/.ssh/authorized_keys
+    dest: /home/dgouser/.ssh/authorized_keys
+    owner: dgouser
+    group: dgouser
+    mode: '0600'
+    remote_src: yes
+    
+- name: Disable root login and password login over SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '{{ item.key }}'
+    line: '{{ item.value }}'
+    backup: yes
+  loop:
+    - { key: '^PermitRootLogin', value: 'PermitRootLogin no' }
+    - { key: '^PasswordAuthentication', value: 'PasswordAuthentication no' }
+  notify: Restart SSH
