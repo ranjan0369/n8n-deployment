@@ -405,6 +405,85 @@ ansible nomad_servers -m shell -a "nomad node status"
 
 ---
 
+## Continuous Deployment with GitHub Actions
+
+### Automatic Redeployment on Job File Changes
+
+This project includes a GitHub Actions CI/CD workflow that automatically redeploys N8N whenever you push changes to the Nomad job file. This ensures your infrastructure stays in sync with your configuration definitions.
+
+### How It Works
+
+```
+Developer pushes to git
+    ↓
+GitHub detects changes in n8n.nomad.hcl
+    ↓
+GitHub Actions workflow triggers
+    ↓
+Workflow connects to production server via SSH
+    ↓
+Updates Nomad job with `nomad run`
+    ↓
+N8N automatically redeploys
+    ↓
+Health checks verify deployment success
+```
+
+### Setup GitHub Actions Automation
+
+#### Step 1: Add Secrets to GitHub
+
+Go to your repository → Settings → Secrets and variables → Actions → New repository secret
+
+Add these secrets:
+
+```
+SERVER_HOST          = (Server's public IP)
+SERVER_USER          = dgouser (SSH user)
+SSH_PRIVATE_KEY      = (paste your private SSH key content)
+
+```
+
+**How to get your SSH private key:**
+
+```bash
+# On your control machine
+cat ~/.ssh/id_rsa
+# Copy the entire output including the -----BEGIN and -----END lines
+```
+
+#### Step 2: Create GitHub Actions Workflow
+
+Create `.github/workflows/deploy-n8n.yml`
+
+
+4. New N8N instance starts with updated resources
+
+### Monitoring Deployments
+
+**View GitHub Actions runs:**
+
+1. Go to your GitHub repository
+2. Click "Actions" tab
+3. Select "Deploy N8N to Production" workflow
+4. View run logs and status
+
+**Check Nomad deployment directly:**
+
+```bash
+ssh dgouser@<droplet's public ip>
+
+# View deployment history
+nomad job history n8n
+
+# Check current version
+nomad status n8n
+
+# View logs of latest deployment
+nomad logs -job n8n
+```
+---
+
 ## Troubleshooting
 
 ### Ansible Connection Issues
