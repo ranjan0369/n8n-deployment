@@ -1,0 +1,35 @@
+name: Deploy N8N to Nomad
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'jobs/n8n.nomad.hcl'
+      - '.github/workflows/deploy-n8n.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Copy Nomad Job File to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./jobs/n8n.nomad.hcl"
+          target: "/root"
+
+      - name: Run Nomad Job on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            nomad job run /root/jobs/n8n.nomad.hcl
