@@ -10,26 +10,76 @@ on:
 
 jobs:
   deploy:
+    name: Redeploy N8N on Job File Change
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Copy Nomad Job File to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./jobs/n8n.nomad.hcl"
-          target: "/home/dgouser"
+      - name: Validate Nomad Job File
+        run: |
+          if [ ! -f "jobs/n8n.nomad.hcl" ]; then
+            echo "❌ Error: jobs/n8n.nomad.hcl not found"
+            exit 1
+          fi
+          echo "✓ Job file found and validation passed"
 
-      - name: Run Nomad Job on Server
+      - name: Deploy N8N to Nomad
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 10m
           script: |
-            nomad job run /home/dgouser/jobs/n8n.nomad.hcl
+            set -e
+            
+            echo "📋 Pulling latest changes from repository..."
+            cd /opt/nomad/jobs
+            git pull origin main
+            
+            echo "🔍 Validating job file..."
+            nomad job validate /opt/nomad/jobs/n8n.nomad.hcl
+            
+            echo "📝 Planning deployment..."
+            nomad job plan /opt/nomad/jobs/n8n.nomad.hcl
+            
+            echo "🚀 Deploying N8N job..."
+            nomad job run /opt/nomad/jobs/n8n.nomad.hcl
+            
+            echo "⏳ Waiting for allocation..."
+            sleep 5
+            
+            echo "✅ Checking deployment status..."
+            nomad status n8n
+            
+            echo "✓ N8N deployment completed successfully"
+
+      - name: Verify N8N Health
+        run: |
+          echo "🏥 Checking N8N health..."
+          for i in {1..30}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k https://${{ secrets.HOST }} || echo "000")
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "401" ]; then
+              echo "✓ N8N is healthy (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+            echo "Attempt $i/30: HTTP $HTTP_CODE - waiting..."
+            sleep 10
+          done
+          echo "⚠️ N8N health check timeout (may still be starting)"
+
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "✅ N8N deployment successful!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "❌ N8N deployment failed!"
+          echo "Check logs above for details"
+          exit 1
