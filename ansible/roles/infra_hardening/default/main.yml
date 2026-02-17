@@ -1,0 +1,11 @@
+common_packages:
+  - unzip
+  - curl
+  - jq
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - apt-transport-https
+
+set_timezone: true
+timezone: "UTC"

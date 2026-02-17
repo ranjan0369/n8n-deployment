@@ -1,0 +1,14 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Create host volumes
+      file:
+        path: "/opt/{{ item }}"
+        state: directory
+        owner: 1000
+        group: 1000
+        mode: '0755'
+      with_items:
+        - postgres/data
+        - n8n/data
+        - traefik/letsencrypt

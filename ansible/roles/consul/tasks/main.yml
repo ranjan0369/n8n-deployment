@@ -1,0 +1,71 @@
+- name: Install Consul binary
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
+    dest: "/tmp/consul.zip"
+    mode: '0644'
+
+- name: Unzip Consul binary
+  unarchive:
+    src: "/tmp/consul.zip"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    mode: '0755'
+
+- name: Create Consul user and group
+  user:
+    name: "{{ consul_user }}"
+    shell: /sbin/nologin
+    create_home: no
+    state: present
+
+- name: Create Consul configuration directory
+  file:
+    path: "{{ consul_config_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+
+- name: Create Consul data directory
+  file:
+    path: "{{ consul_data_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+
+- name: Render Consul configuration file
+  template:
+    src: consul.hcl.j2
+    dest: "{{ consul_config_dir }}/consul.hcl"
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0644"
+  notify: Restart Consul
+
+- name: Create Consul systemd service file
+  copy:
+    dest: /etc/systemd/system/consul.service
+    content: |
+      [Unit]
+      Description=Consul Agent
+      After=nomad.service
+      [Service]
+      User={{ consul_user }}
+      Group={{ consul_group }}
+      ExecStart=/usr/local/bin/consul agent -config-dir={{ consul_config_dir }}
+      Restart=on-failure
+      [Install]
+      WantedBy=multi-user.target
+    mode: "0644"
+  notify: Restart Consul
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Consul
+  systemd:
+    name: consul
+    enabled: true
+    state: started
