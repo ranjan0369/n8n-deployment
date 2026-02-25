@@ -27,7 +27,6 @@ Instead of manual configuration steps, this project uses **Infrastructure as Cod
 | **Orchestration** | Nomad | Install, configure server+client, start agent | `nomad.yml` |
 | **Discovery** | Consul | Install, configure server, start agent | `consul.yml` |
 | **Services** | Job Deployment | Copy Nomad job files, deploy services | `copy-job-files.yml` |
-| **Orchestration** | Master Playbook | Runs all playbooks in correct order | `initialize.yml` |
 
 ### Project Structure
 
@@ -165,11 +164,11 @@ vi ansible/inventory/group_vars/consul_servers.yml
 
 # PostgreSQL
 postgres_user: "postgres"
-postgres_password: "CHANGE_ME_SECURE_PASSWORD_123"      # ⚠️ CHANGE THIS
+postgres_password: "CHANGE_ME_SECURE_PASSWORD_123"
 
 # N8N
 n8n_user: "admin"
-n8n_password: "CHANGE_ME_ANOTHER_SECURE_PASSWORD_456"  # ⚠️ CHANGE THIS
+n8n_password: "CHANGE_ME_ANOTHER_SECURE_PASSWORD_456"
 
 # System
 nomad_version: "1.5.0"
@@ -191,11 +190,13 @@ ansible-playbook playbooks/create-host-volumes.yml
 ansible-playbook playbooks/nomad.yml
 ansible-playbook playbooks/consul.yml
 ansible-playbook playbooks/copy-job-files.yml
+```
+Now run job files in the following order
 
-# Monitor progress - watch for:
-# - TASK [...] - Each step
-# - ok/changed - Success indicator
-# - FAILED - Any errors
+```bash
+nomad run postgres.nomad.hcl
+nomad run n8n.nomad.hcl
+nomad run traefik.nomad.hcl
 ```
 
 **Expected Duration**: 5-10 minutes
