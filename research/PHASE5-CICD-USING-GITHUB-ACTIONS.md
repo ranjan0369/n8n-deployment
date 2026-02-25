@@ -49,7 +49,6 @@ Workflows are defined using YAML files inside:
 .github/workflows/
 ```
 
----
 
 ## How to Store a Private SSH Key as a GitHub Secret
 
@@ -114,7 +113,6 @@ Using `appleboy/ssh-action`:
 
 This executes the Nomad deployment remotely.
 
----
 
 ## Alternative Method – HashiCorp Nomad GitHub Action
 
@@ -137,7 +135,6 @@ env:
 
 However, for a single-node Nomad server, the SSH method is typically simpler and more secure.
 
----
 
 ## Accomplishment Tasks
 
@@ -200,8 +197,6 @@ jobs:
             nomad job run /home/ubuntu/nomad-jobs/n8n.nomad
 ```
 
----
-
 ## How the Deployment Flow Works
 
 1. You modify `n8n.nomad`
@@ -214,8 +209,6 @@ jobs:
 5. Nomad updates the N8N deployment
 
 This creates a fully automated CI/CD pipeline.
-
----
 
 ## Outcome of Phase 5
 
