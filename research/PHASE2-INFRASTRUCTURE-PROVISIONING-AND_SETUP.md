@@ -363,13 +363,13 @@ Access dashboards via SSH tunneling.
 **Nomad UI:**
 
 ```sh
-ssh -L 4646:localhost:4646 deploy@SERVER_IP
+ssh -Nf -L 4646:localhost:4646 admin@droplet_public_ip
 ```
 
 **Consul UI:**
 
 ```sh
-ssh -L 8500:localhost:8500 deploy@SERVER_IP
+ssh -Nf -L 8500:localhost:8500 admin@droplet_public_ip
 ```
 
 ---
